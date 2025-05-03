@@ -6,7 +6,7 @@ from sklearn.decomposition import PCA
 import matplotlib.pyplot as plt
 from sklearn.cluster import KMeans, AgglomerativeClustering
 from sklearn.preprocessing import StandardScaler
-from scipy.cluster.hierarchy import dendrogram, linkage
+from scipy.cluster.hierarchy import dendrogram, linkage, fcluster
 from io import StringIO
 import json
 from kneed import KneeLocator
@@ -40,7 +40,7 @@ MPNETmodel = SentenceTransformer('sentence-transformers/all-mpnet-base-v2')
 BGEmodel = SentenceTransformer("BAAI/bge-m3")
 ROBERTAmodel = SentenceTransformer("sentence-transformers/all-roberta-large-v1")
 
-#folders where results are saved
+#creating folders where results are to be saved
 outmteb1 = "kmean/k-mean_results_mteb/gpt2"
 outmteb2 = "kmean/k-mean_results_mteb/bert"
 outmteb3 = "kmean/k-mean_results_mteb/mpnet"
@@ -359,7 +359,6 @@ dicesData = pd.read_csv(set1)
 jbaData = pd.read_csv(set3a)
 jbbData = pd.read_csv(set3b)
 
-
 with open(set2, 'r', encoding='utf-8') as file:
     json_str = file.read().replace('true', 'True').replace('false', 'False')
 json_io = StringIO(json_str)
@@ -504,18 +503,19 @@ def nCluster(embeddings_df):
 # embeddings_df: the embeddings to be used [dataframe]
 # ind: the index of the model [int] 0 - GPT2, 1 - BERT, 2 - MPNET, 3 = MINI, 4 = T5, 5 = word2vec, 6 = BGE, 7 = ROBERTA, 8 = ALBERT, 9 = XLNet   
 # val: the dataset to be used [int] 0 - MTEB, 1 - DICES, 2 - JBB, 3 - PRISM, 4 - SG, 5 - WILD, 6 - GEN, 7 - SAFE, 8 - MIC, 9 - GEST 
+# k_val: the number of clusters [int]
 #
 # returns:
 # cluster_labels: the labels of the clusters 
 # k-means plot images saved
-def plotKmean(embeddings_df,ind,val): 
+def plotKmean(embeddings_df,ind,val,k_val): 
     output_folder = totalKmean[val][ind]
     scaler = StandardScaler()
     embeddings_scaled = scaler.fit_transform(embeddings_df)
 
     # Perform 10 different k-means clustering 
     for i in range(1,11):
-        kmeans = KMeans(n_clusters= 6)  
+        kmeans = KMeans(n_clusters= k_val)  
         kmeans.fit(embeddings_scaled)
         cluster_labels = kmeans.labels_
         embeddings_df['Cluster'] = cluster_labels
@@ -571,13 +571,20 @@ def printLabel(labels,sentences,ind,val,clu):
 # dendrogram image saved
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
 def plotAgglomeration(embeddings,i,val):
-    clusters = 6  
-
-    # Perform agglomerative clustering
-    cluster = AgglomerativeClustering(n_clusters = clusters, metric = 'euclidean', linkage = 'ward')
-    labels = cluster.fit_predict(embeddings)
+    # Compute the linkage matrix
     linkage_matrix = linkage(embeddings, method='ward')
 
+    # Calculate distances between merges
+    distances = linkage_matrix[:, 2]
+    diffs = np.diff(distances)
+
+    # Find the biggest jump in merge distance (elbow)
+    max_gap_index = np.argmax(diffs)
+    optimal_clusters = len(embeddings) - (max_gap_index + 1)
+
+    # Use the optimal number of clusters
+    cluster = AgglomerativeClustering(n_clusters=optimal_clusters, metric='euclidean', linkage='ward')
+    labels = cluster.fit_predict(embeddings)
     # Plot the dendrogram
     plt.figure(figsize=(10, 7))
     dendrogram(linkage_matrix)
@@ -662,7 +669,7 @@ import argparse
 # Main function to run the script, parse arguments and call the run function 
 def main():
     parser = argparse.ArgumentParser(description='Generate clusters from datasets')
-    parser.add_argument('--batch_size', type=int, required=True, help='Value of batch size')
+    parser.add_argument('--batch_size', type=int, required=True, help='Value of batch size: 1 - (MTEB, DICES), 2 - (JBB, PRISM), 3 - (SG, WILD), 4 - (GEN, SAFE), 5 - (MIC, GEST)')
     args = parser.parse_args()
     
     batch_num = args.batch_size
