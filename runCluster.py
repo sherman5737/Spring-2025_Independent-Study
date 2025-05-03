@@ -9,6 +9,7 @@ from sklearn.preprocessing import StandardScaler
 from scipy.cluster.hierarchy import dendrogram, linkage
 from io import StringIO
 import json
+from kneed import KneeLocator
 
 # Import models
 import gensim.downloader as api
@@ -476,6 +477,26 @@ def allData(data,i):
             embeddings.append(sentence_embed(sentence,i))
     return embeddings 
 
+# To find the optimal number of clusters
+# 
+# Parameters:
+# embeddings_df: the embeddings to be used [dataframe]
+#
+# Returns: N Clusters: the optimal number of clusters [int]
+# 
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # 
+def nCluster(embeddings_df):
+    # Determine which range of k to use, 2 - 15
+    k_range = range(5, 40)
+    inertia = []
+    for k in k_range:
+        kmeans = KMeans(n_clusters=k, random_state=42)
+        kmeans.fit(embeddings_df)
+        inertia.append(kmeans.inertia_) 
+        
+    kl = KneeLocator(k_range, inertia, curve="convex", direction="decreasing")
+    best_k = kl.elbow
+    return best_k
 
 # Using K-means clustering to cluster the embeddings
 #
@@ -585,7 +606,8 @@ def eval(data,val):
     for i in range(10):
         embeddings_df = pd.DataFrame(allData(data,i))
         embeddings = pd.DataFrame(allData(data,i))
-        klabel = plotKmean(embeddings_df,i,val)
+        k_val = nCluster(embeddings_df)
+        klabel = plotKmean(embeddings_df,i,val,k_val)
         printLabel(klabel,data,i,val,0)
         labels = plotAgglomeration(embeddings,i,val)
         printLabel(labels,data,i,val,1)  
