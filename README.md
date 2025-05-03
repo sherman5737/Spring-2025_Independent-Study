@@ -16,7 +16,7 @@ Example: python runDistort.py  --batch_size [Value of batch size]
 Example: python runCluster.py  --batch_size [Value of batch size]
 
 
-Before running the scripts, make to create a directory named 'Dataset' that have files organized like this:
+Before running the scripts, create a directory named 'Dataset' that have files organized like this:
 
 Dataset 
 ├── GenMO [1]
