@@ -11,7 +11,7 @@ import re
 
 models = ['GPT2', 'BERT', 'MPNET', 'MINI', 'T5', 'word2vec', 'BGE', 'ROBERTA', 'ALBERT', 'XLNet']
 
-# Spearman correlation matrix
+# Spearman correlation matrix of all nine datasets
 spearman_matrix_dice = np.array([
     [0.0,   0.433, 0.124, 0.105, 0.521, 0.432, 0.31,  0.205, 0.532, 0.238],
     [0.433, 0.0,   0.258, 0.181, 0.849, 0.815, 0.495, 0.467, 0.832, 0.439],
@@ -152,7 +152,7 @@ dataset_avg = np.mean(triangle_results, axis=0)
 from scipy.cluster.hierarchy import dendrogram, linkage
 
 
-# Function to generate dendrogram, average graph, elbow graph, k-means graph and rank graph
+# Function to generate dendrogram
 #
 # Parameters: NONE
 #
@@ -173,7 +173,7 @@ def dendroGraph():
     plt.ylabel("Distance")
     plt.show()
 
-# Function to generate average correlation across models
+# Function to generate average correlation across datasets
 #
 # Parameters: NONE
 #
@@ -213,7 +213,7 @@ def elbowGraph():
     plt.grid()
     plt.show()
 
-# Function to generate K-Means clustering graph
+# Function to generate K-Means clustering graph on correlations
 #
 # Parameters: NONE
 #
@@ -304,7 +304,6 @@ def main():
     parser.add_argument('--input', type=str, required=True, help='Path to the input text file')
     args = parser.parse_args()
 
-    fileName = 'ManageAgglo/agglo/agglomeration_results_safe/albert/cluster_5.txt'
     fileName = args.input
     wordCloud(fileName)
     dendroGraph()
