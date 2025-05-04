@@ -33,9 +33,6 @@ XLNETmodel = AutoModelForCausalLM.from_pretrained("xlnet/xlnet-base-cased")
 ALBERTtokenizer = AutoTokenizer.from_pretrained("albert/albert-base-v2") 
 ALBERTmodel = AutoModelForMaskedLM.from_pretrained("albert/albert-base-v2")
 
-#DEEPtokenizer = AutoTokenizer.from_pretrained("deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B")
-#DEEPmodel = AutoModelForCausalLM.from_pretrained("deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B")
-
 from sentence_transformers import SentenceTransformer
 MINImodel = SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2')
 MPNETmodel = SentenceTransformer('sentence-transformers/all-mpnet-base-v2')
@@ -181,8 +178,8 @@ def allData(data,i):
 # one: the first model, [int] 0 - GPT2, 1 - BERT, 2 - MPNET, 3 - MINI, 4 - T5, 5 - word2vec, 6 - BGE, 7 - ROBERTA, 8 - ALBERT, 9 - XLNet
 # two: the second model [int] 0 - GPT2, 1 - BERT, 2 - MPNET, 3 - MINI, 4 - T5, 5 - word2vec, 6 - BGE, 7 - ROBERTA, 8 - ALBERT, 9 - XLNet
 #
-# Returns:NONE 
-# prints out spearman and pearson correlation
+# Returns: spearman and p_val 
+# 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
 def diffTwo(dataSet,one,two): 
     embedOne = pd.DataFrame(allData(dataSet,one))
@@ -210,7 +207,6 @@ data10 = gestData['sentence']
 
 totalData = [data1,data2,data3,data4,data5,data6,data7,data8,data9,data10]
 nameData = ['MTEB Dataset','DICE Dataset','JBB Dataset','PRISM Dataset','SG Dataset','WILD Dataset','GEN Dataset', 'SAFE Dataset', 'MIC Dataset', 'GEST Dataset']
-#run(False) 
 
 
 # generate the distortion model tables
@@ -232,7 +228,7 @@ def distortModel(batch_number):
     if batch_number == 4:
         ran = range(6,8)
     if batch_number == 5:
-        ran = range(8,9)
+        ran = range(9,10) #exclude dataset MIC
     for td in ran:
         triTable_spear = np.zeros((10, 10))
         triTable_pval = np.zeros((10, 10))
@@ -261,7 +257,7 @@ def distortModel(batch_number):
         plt.savefig(spear_save_path, dpi=300, bbox_inches='tight')  
         plt.close(fig)
 
-        #P_VALUE 
+        # P_VALUE TABLE
         fig, ax = plt.subplots(figsize=(6, 4))  
         ax.set_axis_off()
         table_pval = ax.table(cellText=np.round(triTable_pval, 3),  
@@ -286,7 +282,7 @@ import argparse
 # Main function to run the script, parse arguments and call the run function 
 def main():
     parser = argparse.ArgumentParser(description='Generate clusters from datasets')
-    parser.add_argument('--batch_size', type=int, required=True, help='Value of batch size')
+    parser.add_argument('--batch_size', type=int, required=True, help='Value of batch size, 1 - (MTEB, DICES), 2 - (JBB, PRISM), 3 - (SG, WILD), 4 - (GEN, SAFE), 5 - (MIC, GEST)')
     args = parser.parse_args()
     
     batch_num = args.batch_size
