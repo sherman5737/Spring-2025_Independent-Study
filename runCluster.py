@@ -485,8 +485,8 @@ def allData(data,i):
 # 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
 def nCluster(embeddings_df):
-    # Determine which range of k to use, 2 - 15
-    k_range = range(5, 40)
+    # Determine which range of k to use, 5 - 15
+    k_range = range(5, 16)
     inertia = []
     for k in k_range:
         kmeans = KMeans(n_clusters=k, random_state=42)
