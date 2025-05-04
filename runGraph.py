@@ -33,9 +33,6 @@ XLNETmodel = AutoModelForCausalLM.from_pretrained("xlnet/xlnet-base-cased")
 ALBERTtokenizer = AutoTokenizer.from_pretrained("albert/albert-base-v2") 
 ALBERTmodel = AutoModelForMaskedLM.from_pretrained("albert/albert-base-v2")
 
-#DEEPtokenizer = AutoTokenizer.from_pretrained("deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B")
-#DEEPmodel = AutoModelForCausalLM.from_pretrained("deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B")
-
 from sentence_transformers import SentenceTransformer
 MINImodel = SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2')
 MPNETmodel = SentenceTransformer('sentence-transformers/all-mpnet-base-v2')
@@ -200,7 +197,7 @@ def allData(data,i):
 # optimal_threshold: the optimal threshold for the graph [float]
 
 def binary_search_threshold(distances, embeddings):
-    """Finds the lowest distance threshold that makes the graph fully connected."""
+    # Finds the lowest distance threshold that makes the graph fully connected 
     left, right = 0, len(distances) - 1
     optimal_threshold = distances[-1][2]  # Default to the largest distance if needed
 
@@ -242,7 +239,6 @@ def gephiGenerate(embeddings,ind,val):
 
     pairwise_distances = pdist(embeddings, metric='euclidean')
     distance_matrix = squareform(pairwise_distances)
-
 
     distances = sorted([(i, j, distance_matrix[i, j]) for i in range(len(embeddings)) 
                         for j in range(i + 1, len(embeddings))], key=lambda x: x[2])
@@ -303,7 +299,7 @@ def run(batch_num):
         for i in range(6,8):
             eval(totalData[i],i)
     if batch_num == 5: 
-        for i in range(9,10):
+        for i in range(9,10): # excludes mic dataset
             eval(totalData[i],i)
 
 #Create whole sentence embeddings datasets 
@@ -328,7 +324,7 @@ import argparse
 # Main function to run the script, parse arguments and call the run function 
 def main():
     parser = argparse.ArgumentParser(description='Generate clusters from datasets')
-    parser.add_argument('--batch_size', type=int, required=True, help='Value of batch size')
+    parser.add_argument('--batch_size', type=int, required=True, help='Value of batch size, 1 - (MTEB, DICES), 2 - (JBB, PRISM), 3 - (SG, WILD), 4 - (GEN, SAFE), 5 - (MIC, GEST)')
     args = parser.parse_args()
     
     batch_num = args.batch_size
